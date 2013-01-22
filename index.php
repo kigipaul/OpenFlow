@@ -82,8 +82,26 @@ var COUNT_ip=0;
  */
 $(document).ready(function(){
 	getData("device");
+	//test array
 });
-
+function checkArrID(){
+	console.log("Start");
+	var tmp_list="Array[\n";
+	var tmp1=0;
+//    for(var tmp1 in SWITCH_IDs){
+        tmp_list += "[0] => { \n\tid => "+SWITCH_IDs[tmp1].id+",\n\tdev => [";
+        for(var tmp2 in SWITCH_IDs[0].dev){
+            var tmp_hosts = "";
+//            for(var tmp3=0; SWITCH_IDs[tmp1].dev[tmp2].host.length;tmp3++){
+//                tmp_hosts += (tmp3==0?"":",")+SWITCH_IDs[tmp1].dev[tmp2].host[tmp3];
+//            }
+            tmp_list += "\n\t{ \n\t\t port =>"+SWITCH_IDs[tmp1].dev[tmp2].port+" ,\n\t\t host => ["+tmp_hosts+"]}\n";
+        }
+        tmp_list += "\n\t]}\n";
+//    }
+    tmp_list +="]\n";
+    alert(tmp_list);	
+}
 
 /*
  *	Get Device Data Function
@@ -118,16 +136,23 @@ function getData(t){
 				});
 			//Get Switch ID List
 				$.each(data.attachmentPoint,function(sqs,switchArray){
-					var isExist=false;
+					var isExistID=false;
+					var isExistPort = false;
 					for(var key in SWITCH_IDs){
 						if(SWITCH_IDs[key].id == switchArray.switchDPID){
-							SWITCH_IDs[key].dev.push(seq);
-							isExist=true;
+							for(var dev_num in SWITCH_IDs[key].dev){
+						//Get switch interface port
+								if(SWITCH_IDs[key].dev[dev_num].port == switchArray.port){
+									SWITCH_IDs[key].dev[dev_num].host.push(seq);
+									isExistPort = true;
+								}
+							}
+							isExistID=true;
 							break;
 						}
 					}
-					if(!isExist){
-						SWITCH_IDs.push({"id":switchArray.switchDPID,"dev":[seq]});
+					if(!isExistID && !isExistPort){
+						SWITCH_IDs.push({"id":switchArray.switchDPID,"dev":[{"port":switchArray.port,"host":[seq]}]});
 					}
 				});
 			//Check is no-ip
@@ -158,6 +183,7 @@ function getData(t){
 			for(var key in SWITCH_IDs){
 				$("#tb_switch tbody").append('<tr id="sw_'+key+'" ><td>'+SWITCH_IDs[key].id+'</td></tr>');
 			}
+			checkArrID();
 		},
 		error:function(msg){
 			alert("Ajax Error:\n===========\n"+msg);
