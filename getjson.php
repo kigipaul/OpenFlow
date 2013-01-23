@@ -167,6 +167,18 @@ if($TYPE=='device'){
 		array_push($json_array,$tmp_data_arr);
 
 	}
+	if(isset($_GET['c']) && @$_GET['c']=="1"){
+		print_arr($counter_array);
+		echo "<br /> ================ <br />";
+	}
+	if(isset($_GET['d']) && @$_GET['d']=="1"){
+		print_arr($data_layout);
+		echo "<br /> ================ <br />";
+	}
+	if(isset($_GET['j']) && @$_GET['j']=="1"){
+		print_arr($json_array);
+		echo "<br /> ================ <br />";
+	}
 	$JSON_DATA = json_encode($json_array,true);
 }
 echo $JSON_DATA;
