@@ -82,8 +82,27 @@ var COUNT_ip=0;
  */
 $(document).ready(function(){
 	getData("device");
+	getData("counter");
+	//test array
 });
-
+/*
+ *	check SWITCH_IDs array
+ */
+function checkArrID(){
+	var test_word="";
+	for(var i in SWITCH_IDs){
+		test_word+=i+"=>id:"+SWITCH_IDs[i].id+"\n";
+		for(var j in SWITCH_IDs[i].dev){
+			test_word+="\t"+j+"=>dev:\n\t\t port:" + SWITCH_IDs[i].dev[j].port+"\n\t\thost:";
+			$.each(SWITCH_IDs[i].dev[j].host,function(k,v){
+				test_word+="("+k+","+v+")";
+			});
+			test_word+="\n\n";
+			
+		}
+	}
+//	alert(test_word);
+}
 
 /*
  *	Get Device Data Function
@@ -96,67 +115,10 @@ function getData(t){
 		success:function(msg){
 		//Get JSON
 			var json=$.parseJSON(msg);
-			var tmp="";
-		//Get JSON data and Create Html
-			$.each(json,function(seq,data){
-				var html="";
-				var subhtml ="";
-				var count=0;
-			//Get Ipv4 List
-				$.each(data.ipv4,function(sq,ipv4){
-					if(count==0){
-						html += 
-						'<td id="ip_'+seq+'_'+sq+'" class="td_ip">'+ipv4+'</td>'+
-						'<td id="pri_'+seq+'_'+sq+'" class="td_pri"></td>';
-					}else{
-						subhtml += '<tr id="dev_'+seq+'_'+sq+'" class="tr_data" onclick="addPri(this.id)">' +
-						'<td id="ip_'+seq+'_'+sq+'" class="td_ip">'+ipv4+'</td>'+
-						'<td id="pri_'+seq+'_'+sq+'" class="td_pri"></td></tr>';
-					}
-					COUNT_ip++;
-					count++;
-				});
-			//Get Switch ID List
-				$.each(data.attachmentPoint,function(sqs,switchArray){
-					var isExist=false;
-					for(var key in SWITCH_IDs){
-						if(SWITCH_IDs[key].id == switchArray.switchDPID){
-							SWITCH_IDs[key].dev.push(seq);
-							isExist=true;
-							break;
-						}
-					}
-					if(!isExist){
-						SWITCH_IDs.push({"id":switchArray.switchDPID,"dev":[seq]});
-					}
-				});
-			//Check is no-ip
-				if(count==0){
-					count++;
-					COUNT_ip++;
-					html = 
-						'<tr id="dev_'+seq+'_0" class="tr_data no_ip" onclick="addPri(this.id)">'+
-						'<td id="mac_'+seq+'_0" class="td_mac" rowspan="'+count+'">'+data.mac+'</td>'+
-						'<td id="ip_'+seq+'_0" class="td_ip"></td>'+
-						'<td id="pri_'+seq+'_0" class="td_pri"></td></tr>';
-				}else{
-					html=
-						'<tr id="dev_'+seq+'_0" class="tr_data" onclick="addPri(this.id)">'+
-						'<td id="mac_'+seq+'_0" class="td_mac" rowspan="'+count+'">'+data.mac+'</td>'+html+'</tr>';
-				}
-				COUNT_mac++;
-			//Combine html
-				tmp += html;
-				if(subhtml!="")
-					tmp += subhtml;
-				
-			});
-		//Create html
-			$("#tb_device tbody").html(tmp);
-			$("#num_mac").html(COUNT_mac);
-			$("#num_ip").html(COUNT_ip);
-			for(var key in SWITCH_IDs){
-				$("#tb_switch tbody").append('<tr id="sw_'+key+'" ><td>'+SWITCH_IDs[key].id+'</td></tr>');
+			if(t=="device"){
+				parseData(json);
+			}else if(t=="counter"){
+				parseCounter(json);
 			}
 		},
 		error:function(msg){
@@ -165,7 +127,125 @@ function getData(t){
 	});
 }
 
+/*
+ *	parse all Data
+ */
+function parseData(json){
+	var tmp="";
+//Get JSON data and Create Html
+	$.each(json,function(seq,data){
+		var html="";
+		var subhtml ="";
+		var count=0;
+	//Get Ipv4 List
+		$.each(data.ipv4,function(sq,ipv4){
+			if(count==0){
+				html += 
+				'<td id="ip_'+seq+'_'+sq+'" class="td_ip">'+ipv4+'</td>'+
+				'<td id="pri_'+seq+'_'+sq+'" class="td_pri"></td>';
+			}else{
+				subhtml += '<tr id="dev_'+seq+'_'+sq+'" class="tr_data" onclick="addPri(this.id)">' +
+				'<td id="ip_'+seq+'_'+sq+'" class="td_ip">'+ipv4+'</td>'+
+				'<td id="pri_'+seq+'_'+sq+'" class="td_pri"></td></tr>';
+			}
+			COUNT_ip++;
+			count++;
+		});
+	//Get Switch ID List
+		$.each(data.attachmentPoint,function(sqs,switchArray){
+			var isExistID=false;
+			var isExistPort = false;
+			for(var key in SWITCH_IDs){
+				if(SWITCH_IDs[key].id == switchArray.switchDPID){
+					for(var dev_num in SWITCH_IDs[key].dev){
+				//Get switch interface port
+						if(SWITCH_IDs[key].dev[dev_num].port == switchArray.port){
+							SWITCH_IDs[key].dev[dev_num].host.push(seq);
+							isExistPort = true;
+						}
+					}
+					isExistID=true;
+					break;
+				}
+			}
+			if(!isExistID && !isExistPort){
+				SWITCH_IDs.push({"id":switchArray.switchDPID,"dev":[{"port":switchArray.port,"host":[seq]}]});
+			}
+		});
+	//Check is no-ip
+		if(count==0){
+			count++;
+			COUNT_ip++;
+			html = 
+				'<tr id="dev_'+seq+'_0" class="tr_data no_ip" onclick="addPri(this.id)">'+
+				'<td id="mac_'+seq+'_0" class="td_mac" rowspan="'+count+'">'+data.mac+'</td>'+
+				'<td id="ip_'+seq+'_0" class="td_ip"></td>'+
+				'<td id="pri_'+seq+'_0" class="td_pri"></td></tr>';
+		}else{
+			html=
+				'<tr id="dev_'+seq+'_0" class="tr_data" onclick="addPri(this.id)">'+
+				'<td id="mac_'+seq+'_0" class="td_mac" rowspan="'+count+'">'+data.mac+'</td>'+html+'</tr>';
+		}
+		COUNT_mac++;
+	//Combine html
+		tmp += html;
+		if(subhtml!="")
+			tmp += subhtml;
+		
+	});
+//Create html
+	$("#tb_device tbody").html(tmp);
+	$("#num_mac").html(COUNT_mac);
+	$("#num_ip").html(COUNT_ip);
+	for(var key in SWITCH_IDs){
+		$("#tb_switch tbody").append('<tr id="sw_'+key+'" ><td>'+SWITCH_IDs[key].id+'</td></tr>');
+	}
+//		checkArrID();
 
+}
+/*
+ *	parse Counter data
+ */
+function parseCounter(json_data){
+	$.each(json_data,function(index,data){
+		for(var key in data.interface){
+			if(data.interface[key].level ==8){
+				CounterWarning(data.switchID,data.interface[key].port);
+			}
+		}
+	});
+}
+
+/*
+ *	Warning function
+ */
+function CounterWarning(id,port){
+	var haveHost = false;
+	var get_seq = [];
+	for(var i in SWITCH_IDs){
+		if(SWITCH_IDs[i].id==id){
+			for(var j in SWITCH_IDs[i].dev){
+				if(SWITCH_IDs[i].dev[j].port == port){
+					get_seq.push(SWITCH_IDs[i].dev[j].host);
+					haveHost = true;
+				}
+			}
+			
+		}
+	}
+	if(!haveHost){
+		return;
+	}
+	$.each(get_seq[0],function(i,change_seq){
+		var num_dev = $("#mac_"+change_seq+"_0").attr("rowspan");
+		for(var j = 0;j<=num_dev ;j++){
+			$("#dev_"+change_seq+"_"+j).css("background-image","-o-linear-gradient(top, #EE5F5B, #BD362F)");
+			$("#dev_"+change_seq+"_"+j).css("color","#FFFFFF");
+			$("#dev_"+change_seq+"_"+j).css("text-shadow","0px -1px 0px rgba(0, 0, 0, 0.251)");
+
+		}
+	});
+}
 /*
  *	Add onClick element
  */
