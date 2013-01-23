@@ -25,8 +25,23 @@ if($TYPE=='device'){
 		
 		exit(0);
 	}
+	##
+	##	Parse Counter json
+	##	Schema: 
+	##		Array(
+	##			[#] => Array (
+	##				[switchID] 	=> switchDPID / Control packet name
+	##				[control] 	=> 0 / 1  (Not control packet / control packet)
+	##				[counter] 	=> src data
+	##				[port] 		=> port number / null (if no port then it's null)
+	##				[packet] 	=> OFPacketIn / Out (Packet is in or out)
+	##				[layer] 	=> L3 / L4 (packet layer)
+	##				[proto] 	=> packet use protocol
+	##				[msg] 		=> (Exception Message)
+	##			)
+	##		)
+	##
 	$counter_array=array();
-	## Parse Counter json
 	foreach($src_json_data as $switch_all => $counter){
 		$havePort = true;
 		$sw_index = 0;
@@ -36,6 +51,7 @@ if($TYPE=='device'){
 		## Start parse json and build to array
 		$switch['switchID'] = $switch_data_arr[$sw_index++];
 		$switch['control']=0;
+		$switch['counter'] = $counter;
 		## Check is control packet ?
 		if(strlen($switch['switchID'])!=23){
 			$tmp_msg="";
@@ -81,13 +97,45 @@ if($TYPE=='device'){
 			$switch['proto'] = "null";
 			$switch['msg'] = $tmp_msg;
 		}
+		
 		array_push($counter_array,$switch);
 
 	}
-	echo "<pre>";
-	print_r($counter_array);
-	echo "</pre>";
-	
+
+	##
+	##	Get important information
+	##	Schema:
+	##		Array(
+	##			[switchID #] => Array(
+	##				[port #] => sum of number of this interface counter 
+	##			)
+	##		)
+	##
+	##
+
+	$data_layout = array();
+	foreach($counter_array as $key => $data){
+		if($data['control'] || $data['port']=="null"){
+			continue;
+		}
+		if(!isset($data_layout[$data['switchID']])){
+			$data_layout[$data['switchID']] = array();
+			$data_layout[$data['switchID']][$data['port']] = $data['counter'];
+		}else{
+			if(!isset($data_layout[$data['switchID']][$data['port']])){
+				$data_layout[$data['switchID']][$data['port']] = $data['counter'];
+			}else{
+				$data_layout[$data['switchID']][$data['port']] += $data['counter'];
+			}
+		}
+	}
 }
 echo $JSON_DATA;
+
+
+function print_arr($array){
+	echo "<pre>";
+	print_r($array);
+	echo "</pre>";
+}
 ?>
