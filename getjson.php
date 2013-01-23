@@ -27,7 +27,7 @@ if($TYPE=='device'){
 	}
 	##
 	##	Parse Counter json
-	##	Schema: 
+	##	$counter_array Schema: 
 	##		Array(
 	##			[#] => Array (
 	##				[switchID] 	=> switchDPID / Control packet name
@@ -104,7 +104,7 @@ if($TYPE=='device'){
 
 	##
 	##	Get important information
-	##	Schema:
+	##	$data_layout Schema:
 	##		Array(
 	##			[switchID #] => Array(
 	##				[port #] => sum of number of this interface counter 
@@ -129,6 +129,45 @@ if($TYPE=='device'){
 			}
 		}
 	}
+	
+	##
+	##	Compare data and make json
+	##	$json_array Schema:
+	##		Array(
+	##			[#] => Array(
+	##				"switchID" => switchDPID
+	##				"interface" => Array(
+	##					"port" => port #
+	##					"level" => [0-10] (0 is ok and 8 is to danger)
+	##				)
+	##		)
+	##	---
+	##	echo JSON Schema:
+	##		like $json_array
+	##		[
+	##			{"switchID":switchDPID,
+	##			 "interface":[{"port":port#,"level":[0-10]}]
+	##			}
+	##		]
+	##
+
+	##	Config set
+	$upper_bound = 10000000; 
+	##
+	$json_array = array();
+	foreach($data_layout as $switchID => $port){
+		$tmp_data_arr = array();
+		$tmp_data_arr['switchID'] = $switchID;
+		$tmp_data_arr['interface'] = array();
+		foreach($port as $port_num => $val){
+			$level = ($val>=$upper_bound?8:0);
+			$tmp_arr = array("port"=>$port_num,"level"=>$level);
+			array_push($tmp_data_arr['interface'],$tmp_arr);
+		}
+		array_push($json_array,$tmp_data_arr);
+
+	}
+	$JSON_DATA = json_encode($json_array,true);
 }
 echo $JSON_DATA;
 
