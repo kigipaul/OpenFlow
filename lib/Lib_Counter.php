@@ -1,4 +1,8 @@
 <?php
+
+
+$BASE_FILE = "Counter_Base.json";
+
 function Counter_jsonToArray($src_json_data){
 	##
     ##  Parse Counter json
@@ -113,9 +117,44 @@ function Counter_layout($counter_array){
 }
 
 function Counter_getBase(){
+	global $BASE_FILE;
+	$file = file_r("./$BASE_FILE");
+	return $file;
 }
 
-function Counter_setBase(){
+function Counter_setBase($json_data){
+	global $BASE_FILE;
+	$file = file_w($json_data,"./$BASE_FILE");
+	return $file;
+}
+function file_w($data,$path){
+	$isSuc = false;
+	$fdata = fopen("$path","w");
+	if($fdata){
+		$isSuc = true;
+		fwrite($fdata,$data);
+		fclose($fdata);
+		return $isSuc;
+	}else{
+		$isSuc=false;
+		return $isSuc;
+		
+	}
+}
+function file_r($path){
+	$isSuc = false;
+	$fdata = fopen("$path","r");
+	$data = "";
+	if($fdata){
+		$isSuc = true;
+		while(!feof($fdata)){
+			$data .= fgets($fdata,4096);
+		}
+		fclose($fdata);
+		return $data;
+	}else{
+		return $isSuc;
+	}
 }
 
 
