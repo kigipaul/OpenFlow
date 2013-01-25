@@ -83,7 +83,6 @@ var COUNT_ip=0;
 $(document).ready(function(){
 	getData("device");
 	getData("counter");
-	//test array
 });
 /*
  *	check SWITCH_IDs array
@@ -200,8 +199,7 @@ function parseData(json){
 	for(var key in SWITCH_IDs){
 		$("#tb_switch tbody").append('<tr id="sw_'+key+'" ><td>'+SWITCH_IDs[key].id+'</td></tr>');
 	}
-//		checkArrID();
-
+	
 }
 /*
  *	parse Counter data
@@ -470,8 +468,6 @@ function noip(type){
 			</tr>
 		</thead>
 		<tbody>
-			<tr id="tr1" class="tr_data"><td>test</td><td>1234</td><td id="pri_tr1"></td></tr>
-			<tr id="tr2" class="tr_data"><td>tess</td><td>14423</td><td id="pri_tr2"></td></tr>
 		</tbody>
 	</table>
 </div>
