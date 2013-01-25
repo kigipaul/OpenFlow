@@ -44,6 +44,7 @@ if($TYPE=='device'){
 	##				"interface" => Array(
 	##					"port" => port #
 	##					"level" => [0-10] (0 is ok and 8 is to danger)
+	##					"counter" => 10min Counter Gap
 	##				)
 	##		)
 	##	---
