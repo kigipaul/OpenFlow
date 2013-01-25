@@ -116,15 +116,22 @@ function Counter_layout($counter_array){
 	return $data_layout;
 }
 
-function Counter_getBase(){
+function Counter_getBase($path){
 	global $BASE_FILE;
-	$file = file_r("./$BASE_FILE");
-	return $file;
+	$file = file_r("$path/$BASE_FILE");
+	$getBase = json_decode($file);
+
+	##	Convert stdClass to Array
+	$base_array = get_object_vars($getBase);
+	foreach($base_array as $switchID => $base_subarray){
+		$base_array[$switchID] = get_object_vars($base_subarray);
+	}
+	return $base_array;
 }
 
-function Counter_setBase($json_data){
+function Counter_setBase($json_data,$path){
 	global $BASE_FILE;
-	$file = file_w($json_data,"./$BASE_FILE");
+	$file = file_w($json_data,"$path/$BASE_FILE");
 	return $file;
 }
 function file_w($data,$path){
