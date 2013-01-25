@@ -58,7 +58,7 @@ if($TYPE=='device'){
 	##
 
 	##	Config set
-	$upper_bound = 10000000; 
+	$upper_bound = 50000; 
 	##
 	$json_array = array();
 	foreach($data_layout as $switchID => $port){
